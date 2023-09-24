@@ -1,0 +1,84 @@
+document.addEventListener("DOMContentLoaded", function () {
+    // 메뉴 링크 클릭 시 화면 전환
+    const homeLink = document.getElementById("homeLink");
+    const conceptLink = document.getElementById("conceptLink");
+    const conversionLink = document.getElementById("conversionLink");
+
+    homeLink.addEventListener("click", () => {
+        showContent("home-content");
+    });
+
+    conceptLink.addEventListener("click", () => {
+        showContent("concept-container");
+    });
+
+    conversionLink.addEventListener("click", () => {
+        showContent("conversion-container");
+    });
+
+    function showContent(contentId) {
+        const sections = document.querySelectorAll(".container > div");
+        sections.forEach((section) => {
+            section.style.display = "none";
+        });
+
+        document.querySelector("." + contentId).style.display = "block";
+    }
+
+    // 중위에서 후위 표현식으로 변환
+    const convertButton = document.getElementById("convertButton");
+    convertButton.addEventListener("click", () => {
+        const infixExpression = document.getElementById("infixExpression").value;
+        const postfixExpression = infixToPostfix(infixExpression);
+        document.getElementById("postfixExpression").value = postfixExpression;
+    });
+
+    function infixToPostfix(infix) {
+        const precedence = {
+            "+": 1,
+            "-": 1,
+            "*": 2,
+            "/": 2,
+            "^": 3,
+        };
+        const output = [];
+        const operatorStack = [];
+        const tokens = infix.split(/\s+/).filter((token) => token !== "");
+
+        tokens.forEach((token) => {
+            if (!isNaN(token)) {
+                // 피연산자일 경우, 바로 출력 큐에 추가합니다.
+                output.push(token);
+            } else if (token in precedence) {
+                // 연산자일 경우
+                while (
+                    operatorStack.length > 0 &&
+                    operatorStack[operatorStack.length - 1] !== "(" &&
+                    precedence[operatorStack[operatorStack.length - 1]] >= precedence[token]
+                ) {
+                    // 스택의 맨 위 연산자가 현재 연산자보다 높거나 같은 우선순위일 때까지 출력 큐로 이동합니다.
+                    output.push(operatorStack.pop());
+                }
+                operatorStack.push(token);
+            } else if (token === "(") {
+                // 여는 괄호일 경우, 스택에 추가합니다.
+                operatorStack.push(token);
+            } else if (token === ")") {
+                // 닫는 괄호일 경우, 여는 괄호를 만날 때까지 스택의 연산자를 출력 큐로 이동합니다.
+                while (operatorStack.length > 0 && operatorStack[operatorStack.length - 1] !== "(") {
+                    output.push(operatorStack.pop());
+                }
+                // 여는 괄호를 스택에서 제거합니다.
+                operatorStack.pop();
+            }
+        });
+
+        // 남아있는 모든 연산자를 출력 큐로 이동합니다.
+        while (operatorStack.length > 0) {
+            output.push(operatorStack.pop());
+        }
+
+        // 후위 표현식을 문자열로 반환합니다.
+        return output.join(" ");
+    }
+});
